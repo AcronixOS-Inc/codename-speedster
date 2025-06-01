@@ -1,33 +1,57 @@
-name: Kernel CI
+name: CI Pipeline
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   build:
+    name: Build and Test
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            build-essential \
-            nasm \
-            gcc-multilib \
-            qemu-system-x86 \
-            gdb
+          sudo apt-get install -y nasm gcc-multilib qemu-system-x86 make
 
       - name: Build kernel
         run: make all
 
-      - name: Test in QEMU
-        run: |
-          timeout 5s make run || echo "QEMU exited (expected)"
+      - name: Run kernel in QEMU
+        run: make run &
+          sleep 5
+          killall qemu-system-i386 || true
 
-      - name: Upload kernel artifact
-        if: success()
-        uses: actions/upload-artifact@v3
-        with:
-          name: kernel-binary
-          path: kernel
+  lint:
+    name: Linting
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install shellcheck
+        run: sudo apt-get install -y shellcheck
+
+      - name: Lint Makefile
+        run: shellcheck -e SC2006,SC2086 Makefile || true
+
+      - name: Check for trailing whitespace
+        run: |
+          if grep -r '[[:blank:]]$' src/; then
+            echo "Error: Trailing whitespace found in source files"
+            exit 1
+          fi
+
+      - name: Check file permissions
+        run: |
+          if find src/ -type f -not -perm 644 | grep .; then
+            echo "Error: Incorrect file permissions found"
+            exit 1
+          fi
