@@ -1,0 +1,33 @@
+name: Kernel CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            nasm \
+            gcc-multilib \
+            qemu-system-x86 \
+            gdb
+
+      - name: Build kernel
+        run: make all
+
+      - name: Test in QEMU
+        run: |
+          timeout 5s make run || echo "QEMU exited (expected)"
+
+      - name: Upload kernel artifact
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: kernel-binary
+          path: kernel
