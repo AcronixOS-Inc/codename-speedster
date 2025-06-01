@@ -13,7 +13,16 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Cache build artifacts
+        uses: actions/cache@v3
+        id: cache
+        with:
+          path: |
+            build/
+            kernel
+          key: ${{ runner.os }}-build-${{ hashFiles('**/*.c', '**/*.asm', '**/*.h', 'Makefile') }}
 
       - name: Install dependencies
         run: |
@@ -23,14 +32,15 @@ jobs:
       - name: Build kernel
         run: make all
 
-      - name: Run kernel in QEMU
+      - name: Run kernel in QEMU (basic test)
         run: |
           make run &
           sleep 5
           killall qemu-system-i386 || true
 
       - name: Upload kernel artifact
-        uses: actions/upload-artifact@v3
+        if: ${{ success() }}
+        uses: actions/upload-artifact@v4
         with:
           name: kernel-build
           path: |
@@ -41,11 +51,11 @@ jobs:
   lint:
     name: Linting
     runs-on: ubuntu-latest
-    continue-on-error: true  # Не останавливать workflow при ошибках линтинга
+    continue-on-error: true
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install shellcheck
         run: sudo apt-get install -y shellcheck
