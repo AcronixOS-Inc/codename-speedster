@@ -1,7 +1,11 @@
 #include "../video/video.h"
 #include "keyboard.h"
 #include "../interrupts/idt.h"
-#include "../ports.h"  // Добавляем заголовочный файл с inb/outb
+#include "../ports.h"
+
+// Определение адресов командных портов PIC
+#define PIC1_CMD 0x20  // Командный порт первого PIC
+#define PIC2_CMD 0xA0  // Командный порт второго PIC
 
 #define KEYBOARD_DATA_PORT 0x60
 
@@ -14,6 +18,11 @@ static const char scancode_to_ascii[] = {
 
 void keyboard_handler() {
     uint8_t scancode = inb(KEYBOARD_DATA_PORT);
+    
+    // Отправляем EOI обоим PIC
+    outb(PIC1_CMD, 0x20);
+    outb(PIC2_CMD, 0x20);
+    
     if (scancode < sizeof(scancode_to_ascii)) {
         char c = scancode_to_ascii[scancode];
         if (c == '\n') {
@@ -23,9 +32,9 @@ void keyboard_handler() {
             print_char(c);
         }
     }
-    outb(0x20, 0x20);  // Отправляем EOI в PIC
 }
 
 void init_keyboard() {
     idt_init();
+    __asm__ volatile ("sti");  // Включаем прерывания!
 }

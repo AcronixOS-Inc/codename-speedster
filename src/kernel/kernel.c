@@ -1,3 +1,4 @@
+// src/kernel/kernel.c
 #include "video/video.h"
 #include "keyboard/keyboard.h"
 
@@ -7,9 +8,9 @@ void kmain() {
     print_string("codename speedster\n(c) Acronium Foundation\n> ");
 
     init_keyboard();
-    __asm__ volatile ("sti");  // Включаем прерывания!
 
+    // Основной цикл
     while (1) {
         __asm__ volatile ("hlt");
     }
-}
+} 
