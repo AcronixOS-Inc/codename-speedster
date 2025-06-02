@@ -77,3 +77,15 @@ void print_string(const char* str)
         pos += 2;
     }
 }
+
+void print_string_color(const char* str, unsigned char fg_color, unsigned char bg_color) 
+{
+    unsigned pos = 0;
+    unsigned char attribute = (bg_color << 4) | (fg_color & 0x0F);
+    
+    while (*str) {
+        VIDEO_MEMORY[pos] = *str++;
+        VIDEO_MEMORY[pos+1] = attribute;
+        pos += 2;
+    }
+}

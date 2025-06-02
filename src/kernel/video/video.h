@@ -12,6 +12,25 @@
 #ifndef KERNEL_VIDEO_H
 #define KERNEL_VIDEO_H
 
+/* Цвета текста и фона */
+#define COLOR_BLACK         0x0
+#define COLOR_BLUE          0x1
+#define COLOR_GREEN         0x2
+#define COLOR_CYAN         0x3
+#define COLOR_RED           0x4
+#define COLOR_MAGENTA       0x5
+#define COLOR_BROWN         0x6
+#define COLOR_LIGHT_GRAY    0x7
+#define COLOR_DARK_GRAY     0x8
+#define COLOR_LIGHT_BLUE    0x9
+#define COLOR_LIGHT_GREEN   0xA
+#define COLOR_LIGHT_CYAN    0xB
+#define COLOR_LIGHT_RED     0xC
+#define COLOR_LIGHT_MAGENTA 0xD
+#define COLOR_YELLOW        0xE
+#define COLOR_WHITE         0xF
+
+
 /**
  * @brief Очищает экран, заполняя его пробелами
  * 
@@ -33,5 +52,17 @@ void clear_screen(void);
  *          специальные символы (например, перенос строки).
  */
 void print_string(const char* str);
+
+
+/**
+ * @brief Выводит цветную строку на экран
+ * 
+ * Выводит ASCIIZ-строку с указанными цветами текста и фона.
+ * 
+ * @param str Указатель на строку для вывода
+ * @param fg_color Цвет текста (используйте COLOR_* константы)
+ * @param bg_color Цвет фона (используйте COLOR_* константы)
+ */
+void print_string_color(const char* str, unsigned char fg_color, unsigned char bg_color);
 
 #endif /* KERNEL_VIDEO_H */

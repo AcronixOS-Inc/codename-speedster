@@ -16,9 +16,9 @@ void kmain(void)
     // Очищаем экран
     clear_screen();
     
-    // Выводим приветственное сообщение
+    // Выводим приветственное сообщение с цветами (зеленый текст на красном фоне)
     const char *welcome_msg = "Hello, World!";
-    print_string(welcome_msg);
+    print_string_color(welcome_msg, COLOR_GREEN, COLOR_RED);
     
     return;
 }
