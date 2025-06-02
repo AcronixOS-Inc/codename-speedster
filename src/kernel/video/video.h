@@ -1,68 +1,45 @@
 /**
  * @file video.h
- * @brief Интерфейс для работы с видеопамятью в текстовом режиме VGA
- * 
- * Этот заголовочный файл предоставляет объявления функций для базовых операций
- * с видеопамятью в текстовом режиме 80x25 символов. Реализация функций находится
- * в файле video.c.
- * 
- * @note Все функции работают напрямую с видеопамятью по адресу 0xB8000
+ * @brief Интерфейс для работы с видеопамятью VGA (текстовый режим 80x25)
  */
 
 #ifndef KERNEL_VIDEO_H
 #define KERNEL_VIDEO_H
 
-/* Цвета текста и фона */
-#define COLOR_BLACK         0x0
-#define COLOR_BLUE          0x1
-#define COLOR_GREEN         0x2
-#define COLOR_CYAN         0x3
-#define COLOR_RED           0x4
-#define COLOR_MAGENTA       0x5
-#define COLOR_BROWN         0x6
-#define COLOR_LIGHT_GRAY    0x7
-#define COLOR_DARK_GRAY     0x8
-#define COLOR_LIGHT_BLUE    0x9
-#define COLOR_LIGHT_GREEN   0xA
-#define COLOR_LIGHT_CYAN    0xB
-#define COLOR_LIGHT_RED     0xC
-#define COLOR_LIGHT_MAGENTA 0xD
-#define COLOR_YELLOW        0xE
-#define COLOR_WHITE         0xF
-
+// Цвета текста (для атрибутов символов)
+#define VGA_COLOR_BLACK     0x00
+#define VGA_COLOR_WHITE     0x07
+#define VGA_COLOR_GRAY      0x08
+#define VGA_COLOR_RED       0x0C
+#define VGA_COLOR_GREEN     0x0A
 
 /**
- * @brief Очищает экран, заполняя его пробелами
- * 
- * Функция заполняет всю видеопамять пробелами с атрибутом 0x07
- * (светло-серый текст на черном фоне), что приводит к очистке экрана.
- * Курсор при этом не перемещается.
+ * @brief Очищает экран, заполняя его пробелами.
  */
 void clear_screen(void);
 
 /**
- * @brief Выводит строку на экран в текущей позиции
- * 
- * Выводит ASCIIZ-строку (завершающуюся нулем) на экран, начиная с левого верхнего
- * угла. Каждый символ выводится с атрибутом 0x07 (светло-серый на черном фоне).
- * 
- * @param str Указатель на строку для вывода. Должна завершаться нулевым байтом.
- * 
- * @warning Функция не проверяет выход за границы экрана и не обрабатывает
- *          специальные символы (например, перенос строки).
+ * @brief Выводит строку на экран.
+ * @param str Строка (завершается нулём).
  */
 void print_string(const char* str);
 
+/**
+ * @brief Выводит один символ на экран.
+ * @param c Символ (поддерживает \n, \b).
+ */
+void print_char(char c);
 
 /**
- * @brief Выводит цветную строку на экран
- * 
- * Выводит ASCIIZ-строку с указанными цветами текста и фона.
- * 
- * @param str Указатель на строку для вывода
- * @param fg_color Цвет текста (используйте COLOR_* константы)
- * @param bg_color Цвет фона (используйте COLOR_* константы)
+ * @brief Устанавливает позицию курсора.
+ * @param x Колонка (0..79).
+ * @param y Строка (0..24).
  */
-void print_string_color(const char* str, unsigned char fg_color, unsigned char bg_color);
+void set_cursor_pos(int x, int y);
+
+/**
+ * @brief Выводит приглашение "> " в текущей позиции.
+ */
+void show_prompt(void);
 
 #endif /* KERNEL_VIDEO_H */
