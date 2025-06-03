@@ -13,7 +13,7 @@
   <img width="800" style="border-radius:5px;" alt="screenshot" src="screenshots/unstable.png">
 </h3>
 
-# codename-speedster (unstable)
+# codename-speedster (stable)
 
 codename-speedster — это современное экспериментальное ядро операционной системы, разрабатываемое с целью исследования низкоуровневых технологий, обучения системному программированию и тестирования новых концепций в области ОС
 ## Быстрый старт
