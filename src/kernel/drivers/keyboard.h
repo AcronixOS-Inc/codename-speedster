@@ -6,6 +6,8 @@
  * для работы с клавиатурой через контроллер PS/2.
  */
 
+#include "../video/video.h"
+
 #ifndef KERNEL_KEYBOARD_H
 #define KERNEL_KEYBOARD_H
 

@@ -16,7 +16,7 @@
  * - Младший байт: ASCII-код символа
  * - Старший байт: атрибуты символа (цвета переднего плана и фона)
  */
-#define VIDEO_MEMORY ((char*)0xB8000)
+char* VIDEO_MEMORY = (char*)0xB8000;
 
 /**
  * @brief Размер видеопамяти в текстовом режиме 80x25
@@ -32,7 +32,7 @@
  * указывающее на место, куда будет выведен следующий символ.
  * Обновляется после каждого вывода символа.
  */
-static unsigned int cursor_pos = 0;
+unsigned int cursor_pos = 0;
 
 /**
  * @brief Очищает экран, заполняя его пробелами
@@ -67,23 +67,30 @@ void clear_screen(void)
  * @note Обрабатывает символ переноса строки ('\n')
  * @note При достижении конца экрана выполняется сброс позиции в начало
  */
-void print_string(const char* str) 
-{
-    // Используем стандартный цвет (0x07 - светло-серый на чёрном)
+void print_string(const char* str) {
     while (*str) {
         if (*str == '\n') {
-            // Перенос строки: переходим на следующую строку (80 символов * 2 байта)
             cursor_pos = ((cursor_pos / 160) + 1) * 160;
+            str++;
+            continue;
+        }
+        else if (*str == '\b') {
+            if (cursor_pos >= 2) {
+                cursor_pos -= 2;
+                VIDEO_MEMORY[cursor_pos] = ' ';
+            }
             str++;
             continue;
         }
         
         VIDEO_MEMORY[cursor_pos] = *str++;
-        VIDEO_MEMORY[cursor_pos + 1] = 0x07; // Стандартный атрибут
+        VIDEO_MEMORY[cursor_pos + 1] = 0x07;
         cursor_pos += 2;
         
-        // Если достигли конца экрана - сбрасываем в начало
-        if (cursor_pos >= SCREEN_SIZE) cursor_pos = 0;
+        if (cursor_pos >= SCREEN_SIZE) {
+            // Реализуйте скроллинг экрана здесь при необходимости
+            cursor_pos = SCREEN_SIZE - 160;
+        }
     }
 }
 

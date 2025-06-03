@@ -30,6 +30,8 @@
 #define COLOR_YELLOW        0xE
 #define COLOR_WHITE         0xF
 
+extern unsigned int cursor_pos;
+extern char* VIDEO_MEMORY;
 
 /**
  * @brief Очищает экран, заполняя его пробелами
