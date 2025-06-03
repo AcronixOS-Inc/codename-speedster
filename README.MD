@@ -7,7 +7,7 @@
 <h3 align="center">codename-speedster</h3>
 
 <h3 align="center">
-  <img width="800" style="border-radius:5px;" alt="screenshot" src="screenshots/image.png">
+  <img width="800" style="border-radius:5px;" alt="screenshot" src="screenshots/25.06-unstable-1533.png">
 </h3>
 
 # codename-speedster
