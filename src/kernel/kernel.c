@@ -1,6 +1,6 @@
 /**
  * @file kernel.c
- * @brief Главный файл ядра, точка входа
+ * @brief Главный файл ядра - точка входа в систему
  */
 
 #include "video/video.h"
@@ -8,51 +8,55 @@
 #include "drivers/keyboard.h"
 
 /**
- * @brief Точка входа в ядро
- * 
- * Инициализирует необходимые подсистемы ядра и выводит
- * приветственное сообщение на экран.
+ * @brief Точка входа в ядро операционной системы
  */
-void kmain(void)
+void kmain(void) 
 {
-    // Очищаем экран
+    /* Инициализация видео-подсистемы */
     clear_screen();
+
+    idt_init();         // Настройка таблицы прерываний
+    keyboard_init();    // Инициализация драйвера клавиатуры
     
-    // Выводим название ядра (зеленый текст на красном фоне)
-    const char *kernel_name = "codename speedster\n";
-    const char *kernel_msg = "(c) Acronium Foundation\n";
+    /* Вывод информации о ядре */
+    const char *kernel_name = "\ncodename speedster\n";
+    const char *kernel_msg = "(c) Acronium Foundation 2025\n";
+    
+    // Название ядра с цветовым оформлением
     print_string_color(kernel_name, COLOR_GREEN, COLOR_RED);
-    
-    // Выводим вторую строку
+    // Информация о копирайте
     print_string(kernel_msg);
 
-    idt_init();
-    keyboard_init();
 
-    char input_line[256];
-    int pos = 0;
-    
+
+    /* Временный буфер для ввода (только для DevTest) */
+    char input_line[128];
+
+    /**
+     * @brief Основной цикл ядра с временным псевдо-терминалом
+     * 
+     * @note Временный псевдо-терминал доступен ТОЛЬКО в режиме разработки (DevTest)
+     *       и будет удален в финальной версии. В production-среде терминальный ввод/вывод
+     *       будет доступен исключительно из userspace через системные вызовы.
+     */
     while(1) {
-        char input = keyboard_read();
-        if (input != 0) {
-            if (input == '\n') {
-                input_line[pos] = '\0';
-                print_string("\n> ");
-                pos = 0;
-            } 
-            else if (input == '\b') {
-                if (pos > 0) {
-                    pos--;
-                    print_string("\b \b"); // Стираем символ
-                }
-            }
-            else if (pos < sizeof(input_line) - 1) {
-                input_line[pos++] = input;
-                char str[2] = {input, '\0'};
-                print_string(str);
-            }
-        }
+        /* Временное приглашение командной строки */
+        print_string("> ");
+        
+        /**
+         * @dev Временная функция чтения ввода (только для DevTest)
+         * 
+         * @note В production-реализации:
+         * - Ввод будет обрабатываться через механизм прерываний
+         * - Буферизация будет осуществляться в пространстве пользователя
+         * - Доступ к терминалу будет через стандартные дескрипторы (stdin/stdout)
+         */
+        read_line(input_line, sizeof(input_line));
+        
+        /* Здесь должен быть обработчик команд (временный) */
+        /* В финальной версии будет переключение контекста */
     }
-
-    return;
+    
+    /* Ядро никогда не должно достигать этой точки */
+    __builtin_unreachable();
 }

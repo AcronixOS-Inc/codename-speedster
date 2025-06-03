@@ -35,9 +35,10 @@ void keyboard_handler_main(void);
 char keyboard_read(void);
 
 /**
- * Получение последней нажатой клавиши (без удаления из буфера)
- * @return ASCII-код последней нажатой клавиши или 0, если буфер пуст
+ * Чтение строки с клавиатуры до нажатия Enter
+ * @param buffer Буфер для сохранения строки
+ * @param max_length Максимальная длина строки (включая нулевой символ)
  */
-int keyboard_get_last_key(void);
+void read_line(char *buffer, unsigned int max_length);
 
 #endif /* KERNEL_KEYBOARD_H */

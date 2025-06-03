@@ -7,6 +7,7 @@
  */
 
 #include "idt.h"
+#include "../video/video.h"
 
 /* Глобальная таблица IDT */
 struct IDT_entry IDT[IDT_SIZE];
@@ -21,6 +22,8 @@ struct IDT_entry IDT[IDT_SIZE];
  */
 void idt_init(void)
 {
+    print_string("IDT Initialization... ");  // Добавлено: статусное сообщение
+    
     unsigned long keyboard_address;
     unsigned long idt_address;
     unsigned long idt_ptr[2];
@@ -61,4 +64,14 @@ void idt_init(void)
     idt_ptr[1] = idt_address >> 16;
     
     load_idt(idt_ptr);  // Ассемблерная функция загрузки IDT
+
+    /* Проверка успешности инициализации (упрощенная) */
+    if (IDT[0x21].offset_lowerbits == (keyboard_address & 0xffff) && 
+        IDT[0x21].offset_higherbits == ((keyboard_address & 0xffff0000) >> 16)) {
+        print_string_color("OK\n", COLOR_GREEN, COLOR_BLACK);  // Добавлено: успешный статус
+    } else {
+        print_string_color("FAILED\n", COLOR_RED, COLOR_BLACK);  // Добавлено: статус ошибки
+        /* Критическая ошибка - зависание системы */
+        while(1) {};
+    }
 }

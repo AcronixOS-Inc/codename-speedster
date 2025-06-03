@@ -73,7 +73,17 @@ static inline unsigned char inb(unsigned short port) {
  * Размаскировка прерывания клавиатуры в PIC
  */
 void keyboard_init(void) {
-    write_port(0x21, inb(0x21) & 0xFD);
+    print_string("Keyboard Initialization... ");  // Добавлено: статусное сообщение
+    
+    unsigned char mask = inb(0x21) & 0xFD;
+    write_port(0x21, mask);
+    
+    /* Упрощенная проверка - если маска изменилась */
+    if ((inb(0x21) & 0x02) == 0) {
+        print_string_color("OK\n", COLOR_GREEN, COLOR_BLACK);  // Добавлено: успешный статус
+    } else {
+        print_string_color("FAILED\n", COLOR_RED, COLOR_BLACK);  // Добавлено: статус ошибки
+    }
 }
 
 /**
@@ -143,3 +153,35 @@ char keyboard_read(void) {
     }
     return 0;
 }
+
+/**
+ * Чтение строки с клавиатуры до нажатия Enter
+ * @param buffer Буфер для сохранения строки
+ * @param max_length Максимальная длина строки (включая нулевой символ)
+ */
+void read_line(char *buffer, unsigned int max_length) {
+    unsigned int pos = 0;
+    
+    while(1) {
+        char input = keyboard_read();
+        if (input != 0) {
+            if (input == '\n') {
+                buffer[pos] = '\0'; // Завершаем строку
+                print_string("\n"); // Переводим строку
+                return;
+            } 
+            else if (input == '\b') {
+                if (pos > 0) {
+                    pos--;
+                    print_string("\b \b"); // Стираем символ
+                }
+            }
+            else if (pos < max_length - 1) {
+                buffer[pos++] = input;
+                char str[2] = {input, '\0'};
+                print_string(str);
+            }
+        }
+    }
+}
+
