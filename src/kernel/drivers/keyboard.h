@@ -41,6 +41,7 @@ char keyboard_read(void);
  * @param buffer Буфер для сохранения строки
  * @param max_length Максимальная длина строки (включая нулевой символ)
  */
-void read_line(char *buffer, unsigned int max_length);
+// Изменяем возвращаемый тип и параметры
+char* read_line(unsigned int max_length);  // Теперь возвращает указатель на строку
 
 #endif /* KERNEL_KEYBOARD_H */

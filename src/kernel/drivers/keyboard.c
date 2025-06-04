@@ -114,17 +114,27 @@ void keyboard_handler_main(void) {
         }
         // Обработка обычных клавиш
         else if (!(keycode & KEY_RELEASED) && keycode < 128) {
-            char c = shift_pressed || caps_lock ? 
-                   keyboard_map_shift[keycode] : 
-                   keyboard_map[keycode];
-            
-            if (c != 0) {
-                keyboard_buffer[buffer_position++] = c;
-                if (buffer_position >= sizeof(keyboard_buffer)) {
-                    buffer_position = 0;
-                }
+    if (keycode == 0x0F) { // Скан-код Tab
+        // Вставляем 4 пробела
+        for (int i = 0; i < 4; i++) {
+            keyboard_buffer[buffer_position++] = ' ';
+            if (buffer_position >= sizeof(keyboard_buffer)) {
+                buffer_position = 0;
             }
         }
+    } else {
+        char c = shift_pressed || caps_lock ? 
+               keyboard_map_shift[keycode] : 
+               keyboard_map[keycode];
+        
+        if (c != 0) {
+            keyboard_buffer[buffer_position++] = c;
+            if (buffer_position >= sizeof(keyboard_buffer)) {
+                buffer_position = 0;
+            }
+        }
+    }
+}
     }
     
     write_port(0x20, 0x20);
@@ -153,7 +163,8 @@ char keyboard_read(void) {
  * @param buffer Буфер для сохранения строки
  * @param max_length Максимальная длина строки (включая нулевой символ)
  */
-void read_line(char *buffer, unsigned int max_length) {
+char* read_line(unsigned int max_length) {
+    static char buffer[256];  // Статический буфер для хранения ввода
     unsigned int pos = 0;
     
     while(1) {
@@ -162,13 +173,12 @@ void read_line(char *buffer, unsigned int max_length) {
             if (input == '\n') {
                 buffer[pos] = '\0';
                 print_string("\n");
-                return;
+                return buffer;  // Возвращаем указатель на буфер
             } 
             else if (input == '\b') {
                 if (pos > 0) {
                     pos--;
-                    // Удаляем символ с экрана
-                    if (cursor_pos >= 2) {  // Проверка, чтобы не уйти в минус
+                    if (cursor_pos >= 2) {
                         cursor_pos -= 2;
                         VIDEO_MEMORY[cursor_pos] = ' ';
                         VIDEO_MEMORY[cursor_pos + 1] = 0x07;
