@@ -8,6 +8,8 @@
  */
 
 #include "video.h"
+#include "../idt/idt.h"
+#include <stdint.h>
 
 /**
  * @brief Адрес видеопамяти в текстовом режиме VGA
@@ -35,6 +37,56 @@ char* VIDEO_MEMORY = (char*)0xB8000;
 unsigned int cursor_pos = 0;
 
 /**
+ * @brief Включает аппаратный текстовый курсор
+ * 
+ * Устанавливает форму курсора с помощью регистров VGA-контроллера:
+ * задаются начальная и конечная строки курсора в символе.
+ * 
+ * @param cursor_start Начальная строка курсора (0–15)
+ * @param cursor_end Конечная строка курсора (0–15)
+ * 
+ * @note Эта функция напрямую обращается к VGA-портам 0x3D4/0x3D5.
+ */
+void enable_cursor(uint8_t cursor_start, uint8_t cursor_end) {
+    write_port(0x3D4, 0x0A);
+    write_port(0x3D5, (read_port(0x3D5) & 0xC0) | cursor_start);
+
+    write_port(0x3D4, 0x0B);
+    write_port(0x3D5, (read_port(0x3D5) & 0xE0) | cursor_end);
+}
+
+/**
+ * @brief Отключает отображение аппаратного курсора
+ * 
+ * Устанавливает бит отключения курсора в регистре VGA-контроллера.
+ * После вызова курсор не будет отображаться на экране.
+ * 
+ * @note Действует только в текстовом режиме VGA.
+ */
+void disable_cursor() {
+    write_port(0x3D4, 0x0A);
+    write_port(0x3D5, 0x20);
+}
+
+/**
+ * @brief Обновляет позицию аппаратного курсора
+ * 
+ * Перемещает курсор в заданную позицию на экране, рассчитанную как 
+ * offset (номер символа от начала экрана).
+ * 
+ * @param pos Смещение символа в видеопамяти (0–1999 для экрана 80x25)
+ * 
+ * @note Значение указывается в символах, а не в байтах.
+ */
+void update_cursor(int pos) {
+    write_port(0x3D4, 0x0F);
+    write_port(0x3D5, (uint8_t)(pos & 0xFF));
+    write_port(0x3D4, 0x0E);
+    write_port(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
+}
+
+
+/**
  * @brief Очищает экран, заполняя его пробелами
  * 
  * Функция проходит по всей видеопамяти и устанавливает:
@@ -53,6 +105,7 @@ void clear_screen(void)
         VIDEO_MEMORY[i] = ' ';
         VIDEO_MEMORY[i+1] = 0x07;
     }
+    disable_cursor();
     cursor_pos = 0; // Сбрасываем позицию курсора
 }
 

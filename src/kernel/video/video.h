@@ -9,6 +9,8 @@
  * @note Все функции работают напрямую с видеопамятью по адресу 0xB8000
  */
 
+#include <stdint.h>
+
 #ifndef KERNEL_VIDEO_H
 #define KERNEL_VIDEO_H
 
@@ -66,5 +68,45 @@ void print_string(const char* str);
  * @param bg_color Цвет фона (используйте COLOR_* константы)
  */
 void print_string_color(const char* str, unsigned char fg_color, unsigned char bg_color);
+
+/**
+ * @brief Включает отображение курсора на экране
+ * 
+ * Функция включает VGA-курсор и задаёт его форму, указывая начальную и конечную
+ * строку в знакоместе символа. Это позволяет управлять визуальным видом мигающего
+ * курсора в текстовом режиме.
+ * 
+ * @param cursor_start Начальная строка курсора (от 0 до 15)
+ * @param cursor_end Конечная строка курсора (от 0 до 15)
+ * 
+ * @note Если cursor_start > cursor_end, результат будет некорректным.
+ * 
+ * @see disable_cursor()
+ * @see update_cursor()
+ */
+void enable_cursor(uint8_t cursor_start, uint8_t cursor_end);
+
+/**
+ * @brief Отключает отображение курсора на экране
+ * 
+ * Функция отключает мигающий курсор VGA, скрывая его с экрана.
+ * Полезно при необходимости убрать визуальный шум в интерфейсе.
+ * 
+ * @see enable_cursor()
+ * @see update_cursor()
+ */
+void disable_cursor(void);
+
+/**
+ * @brief Перемещает позицию курсора
+ * 
+ * Обновляет текущую позицию аппаратного курсора VGA, устанавливая её в
+ * соответствии с позицией `pos`. Позиция указывается как линейный индекс
+ * символа в видеопамяти (от 0 до 1999 для экрана 80x25).
+ * 
+ * @param pos Новая позиция курсора (номер символа в буфере)
+ */
+void update_cursor(int pos);
+
 
 #endif /* KERNEL_VIDEO_H */

@@ -166,6 +166,9 @@ char keyboard_read(void) {
 char* read_line(unsigned int max_length) {
     static char buffer[256];  // Статический буфер для хранения ввода
     unsigned int pos = 0;
+
+    enable_cursor(0, 15);
+    update_cursor(cursor_pos / 2);
     
     while(1) {
         char input = keyboard_read();
@@ -173,6 +176,7 @@ char* read_line(unsigned int max_length) {
             if (input == '\n') {
                 buffer[pos] = '\0';
                 print_string("\n");
+                disable_cursor();
                 return buffer;  // Возвращаем указатель на буфер
             } 
             else if (input == '\b') {
@@ -184,11 +188,13 @@ char* read_line(unsigned int max_length) {
                         VIDEO_MEMORY[cursor_pos + 1] = 0x07;
                     }
                 }
+                update_cursor(cursor_pos / 2);
             }
             else if (pos < max_length - 1) {
                 buffer[pos++] = input;
                 char str[2] = {input, '\0'};
                 print_string(str);
+                update_cursor(cursor_pos / 2);
             }
         }
     }

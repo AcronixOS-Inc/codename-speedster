@@ -6,6 +6,8 @@
  * а также объявления функций работы с прерываниями.
  */
 
+#include <stdint.h>
+
 #ifndef KERNEL_IDT_H
 #define KERNEL_IDT_H
 
@@ -58,5 +60,16 @@ extern void keyboard_handler(void);
 static inline void write_port(unsigned short port, unsigned char data) {
     __asm__ volatile("outb %0, %1" : : "a"(data), "Nd"(port));
 }
+
+/**
+ * @brief Считывает байт из указанного порта ввода-вывода
+ * 
+ * Ассемблерная вставка использует инструкцию inb для чтения
+ * 8-битного значения с указанного порта ввода-вывода.
+ * 
+ * @param port Номер порта ввода-вывода
+ * @return uint8_t Считанное значение с порта
+ */
+uint8_t read_port(uint16_t port);
 
 #endif /* KERNEL_IDT_H */
