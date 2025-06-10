@@ -18,9 +18,6 @@
 /* Порт статуса клавиатуры */
 #define KEYBOARD_STATUS_PORT 0x64
 
-
-#define SCREEN_SIZE (80 * 25 * 2)
-
 /* Буфер для хранения нажатых клавиш */
 static char keyboard_buffer[256];
 /* Текущая позиция в буфере */

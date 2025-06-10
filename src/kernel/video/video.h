@@ -32,6 +32,8 @@
 #define COLOR_YELLOW        0xE
 #define COLOR_WHITE         0xF
 
+#define SCREEN_SIZE (80 * 25 * 2)
+
 extern unsigned int cursor_pos;
 extern char* VIDEO_MEMORY;
 
