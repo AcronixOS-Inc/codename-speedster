@@ -18,6 +18,9 @@
 /* Порт статуса клавиатуры */
 #define KEYBOARD_STATUS_PORT 0x64
 
+
+#define SCREEN_SIZE (80 * 25 * 2)
+
 /* Буфер для хранения нажатых клавиш */
 static char keyboard_buffer[256];
 /* Текущая позиция в буфере */
@@ -58,28 +61,17 @@ static const char keyboard_map_shift[128] = {
 };
 
 /**
- * Чтение байта из порта ввода-вывода
- * @param port Номер порта
- * @return Прочитанный байт
- */
-static inline unsigned char inb(unsigned short port) {
-    unsigned char ret;
-    __asm__ volatile("inb %1, %0" : "=a"(ret) : "Nd"(port));
-    return ret;
-}
-
-/**
  * Инициализация клавиатуры
  * Размаскировка прерывания клавиатуры в PIC
  */
 void keyboard_init(void) {
     print_string("Keyboard Initialization... ");  // Добавлено: статусное сообщение
     
-    unsigned char mask = inb(0x21) & 0xFD;
+    unsigned char mask = read_port(0x21) & 0xFD;
     write_port(0x21, mask);
     
     /* Упрощенная проверка - если маска изменилась */
-    if ((inb(0x21) & 0x02) == 0) {
+    if ((read_port(0x21) & 0x02) == 0) {
         print_string_color("OK\n", COLOR_GREEN, COLOR_BLACK);  // Добавлено: успешный статус
     } else {
         print_string_color("FAILED\n", COLOR_RED, COLOR_BLACK);  // Добавлено: статус ошибки
@@ -93,10 +85,10 @@ void keyboard_init(void) {
  * (Shift, Caps Lock) и помещает символ в буфер
  */
 void keyboard_handler_main(void) {
-    unsigned char status = inb(KEYBOARD_STATUS_PORT);
+    unsigned char status = read_port(KEYBOARD_STATUS_PORT);
     
     if (status & 0x01) {
-        unsigned char keycode = inb(KEYBOARD_DATA_PORT);
+        unsigned char keycode = read_port(KEYBOARD_DATA_PORT);
         
         // Обработка модификаторов
         if (keycode == KEY_SHIFT || keycode == (KEY_SHIFT | KEY_RELEASED)) {
@@ -107,34 +99,29 @@ void keyboard_handler_main(void) {
         }
         // Обработка пробела (скан-код 0x39)
         else if (keycode == 0x39 && !(keycode & KEY_RELEASED)) {
-            keyboard_buffer[buffer_position++] = ' ';
-            if (buffer_position >= sizeof(keyboard_buffer)) {
-                buffer_position = 0;
+            if (buffer_position < sizeof(keyboard_buffer) - 1) {
+                keyboard_buffer[buffer_position++] = ' ';
             }
         }
         // Обработка обычных клавиш
         else if (!(keycode & KEY_RELEASED) && keycode < 128) {
-    if (keycode == 0x0F) { // Скан-код Tab
-        // Вставляем 4 пробела
-        for (int i = 0; i < 4; i++) {
-            keyboard_buffer[buffer_position++] = ' ';
-            if (buffer_position >= sizeof(keyboard_buffer)) {
-                buffer_position = 0;
+            if (keycode == 0x0F) { // Скан-код Tab
+                // Вставляем 4 пробела
+                for (int i = 0; i < 4; i++) {
+                    if (buffer_position < sizeof(keyboard_buffer) - 1) {
+                        keyboard_buffer[buffer_position++] = ' ';
+                    }
+                }
+            } else {
+                char c = shift_pressed || caps_lock ? 
+                       keyboard_map_shift[keycode] : 
+                       keyboard_map[keycode];
+                
+                if (c != 0 && buffer_position < sizeof(keyboard_buffer) - 1) {
+                    keyboard_buffer[buffer_position++] = c;
+                }
             }
         }
-    } else {
-        char c = shift_pressed || caps_lock ? 
-               keyboard_map_shift[keycode] : 
-               keyboard_map[keycode];
-        
-        if (c != 0) {
-            keyboard_buffer[buffer_position++] = c;
-            if (buffer_position >= sizeof(keyboard_buffer)) {
-                buffer_position = 0;
-            }
-        }
-    }
-}
     }
     
     write_port(0x20, 0x20);
@@ -174,7 +161,11 @@ char* read_line(unsigned int max_length) {
         char input = keyboard_read();
         if (input != 0) {
             if (input == '\n') {
-                buffer[pos] = '\0';
+                if (pos < max_length - 1) {
+                    buffer[pos] = '\0';
+                } else {
+                    buffer[max_length - 1] = '\0';
+                }
                 print_string("\n");
                 disable_cursor();
                 return buffer;  // Возвращаем указатель на буфер
@@ -186,6 +177,8 @@ char* read_line(unsigned int max_length) {
                         cursor_pos -= 2;
                         VIDEO_MEMORY[cursor_pos] = ' ';
                         VIDEO_MEMORY[cursor_pos + 1] = 0x07;
+                    } else {
+                        cursor_pos = 0;
                     }
                 }
                 update_cursor(cursor_pos / 2);
@@ -194,6 +187,9 @@ char* read_line(unsigned int max_length) {
                 buffer[pos++] = input;
                 char str[2] = {input, '\0'};
                 print_string(str);
+                if (cursor_pos >= SCREEN_SIZE){
+                    cursor_pos = SCREEN_SIZE - 2;
+                }
                 update_cursor(cursor_pos / 2);
             }
         }

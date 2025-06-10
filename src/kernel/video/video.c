@@ -35,6 +35,16 @@ char* VIDEO_MEMORY = (char*)0xB8000;
  * Обновляется после каждого вывода символа.
  */
 unsigned int cursor_pos = 0;
+ /**
+ * @brief Безопасное обновление позиции курсора с проверкой границ
+ * @param new_pos Новая позиция курсора
+ */
+static void safe_update_cursor_pos(int new_pos) {
+    if (new_pos < 0) new_pos = 0;
+    if (new_pos >= SCREEN_SIZE) new_pos = SCREEN_SIZE - 2;
+    cursor_pos = new_pos;
+    update_cursor(cursor_pos / 2);
+}
 
 /**
  * @brief Включает аппаратный текстовый курсор
@@ -121,9 +131,12 @@ void clear_screen(void)
  * @note При достижении конца экрана выполняется сброс позиции в начало
  */
 void print_string(const char* str) {
-    while (*str) {
+    while (*str && cursor_pos < SCREEN_SIZE) {
         if (*str == '\n') {
             cursor_pos = ((cursor_pos / 160) + 1) * 160;
+            if (cursor_pos >= SCREEN_SIZE) {
+                cursor_pos = SCREEN_SIZE - 160;
+            }
             str++;
             continue;
         }
@@ -131,6 +144,7 @@ void print_string(const char* str) {
             if (cursor_pos >= 2) {
                 cursor_pos -= 2;
                 VIDEO_MEMORY[cursor_pos] = ' ';
+                VIDEO_MEMORY[cursor_pos + 1] = 0x07;
             }
             str++;
             continue;
@@ -142,8 +156,10 @@ void print_string(const char* str) {
         
         if (cursor_pos >= SCREEN_SIZE) {
             // Реализуйте скроллинг экрана здесь при необходимости
-            cursor_pos = SCREEN_SIZE - 160;
+            cursor_pos = SCREEN_SIZE - 2;
         }
+
+        safe_update_cursor_pos(cursor_pos);
     }
 }
 
@@ -163,9 +179,12 @@ void print_string_color(const char* str, unsigned char fg_color, unsigned char b
 {
     unsigned char attribute = (bg_color << 4) | (fg_color & 0x0F);
     
-    while (*str) {
+    while (*str && cursor_pos < SCREEN_SIZE) {
         if (*str == '\n') {
             cursor_pos = ((cursor_pos / 160) + 1) * 160;
+            if (cursor_pos >= SCREEN_SIZE) {
+                cursor_pos = SCREEN_SIZE - 160;
+            }
             str++;
             continue;
         }
@@ -174,6 +193,9 @@ void print_string_color(const char* str, unsigned char fg_color, unsigned char b
         VIDEO_MEMORY[cursor_pos + 1] = attribute;
         cursor_pos += 2;
         
-        if (cursor_pos >= SCREEN_SIZE) cursor_pos = 0;
+        if (cursor_pos >= SCREEN_SIZE) {
+            cursor_pos = SCREEN_SIZE - 2;
+        }
     }
+    safe_update_cursor_pos(cursor_pos);
 }
