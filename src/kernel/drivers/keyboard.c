@@ -58,6 +58,20 @@ static const char keyboard_map_shift[128] = {
 };
 
 /**
+ * Управление светодиодами клавиатуры
+ * @param leds Битовая маска светодиодов (LED_CAPS_LOCK, LED_NUM_LOCK, LED_SCROLL_LOCK)
+ */
+static void keyboard_set_leds(uint8_t leds) {
+    // Ждем, пока клавиатура будет готова принять команду
+    while (read_port(KEYBOARD_STATUS_PORT) & 0x02);
+    write_port(KEYBOARD_DATA_PORT, KEYBOARD_CMD_SET_LEDS);
+    
+    // Ждем подтверждения
+    while (read_port(KEYBOARD_STATUS_PORT) & 0x02);
+    write_port(KEYBOARD_DATA_PORT, leds);
+}
+
+/**
  * Инициализация клавиатуры
  * Размаскировка прерывания клавиатуры в PIC
  */
@@ -66,6 +80,9 @@ void keyboard_init(void) {
     
     unsigned char mask = read_port(0x21) & 0xFD;
     write_port(0x21, mask);
+
+    // Инициализация светодиодов
+    keyboard_set_leds(0);  // Все светодиоды выключены
     
     /* Упрощенная проверка - если маска изменилась */
     if ((read_port(0x21) & 0x02) == 0) {
@@ -88,21 +105,25 @@ void keyboard_handler_main(void) {
         unsigned char keycode = read_port(KEYBOARD_DATA_PORT);
         
         // Обработка модификаторов
-        if (keycode == KEY_SHIFT || keycode == (KEY_SHIFT | KEY_RELEASED)) {
-            shift_pressed = (keycode != (KEY_SHIFT | KEY_RELEASED));
+        if (keycode == KEY_SHIFT_LEFT || keycode == KEY_SHIFT_RIGHT || 
+            keycode == (KEY_SHIFT_LEFT | KEY_RELEASED) || 
+            keycode == (KEY_SHIFT_RIGHT | KEY_RELEASED)) {
+            shift_pressed = !(keycode & KEY_RELEASED);
         }
         else if (keycode == KEY_CAPSLOCK && !(keycode & KEY_RELEASED)) {
             caps_lock = !caps_lock;
+            // Обновляем светодиод
+            keyboard_set_leds(caps_lock ? LED_CAPS_LOCK : 0);
         }
-        // Обработка пробела (скан-код 0x39)
-        else if (keycode == 0x39 && !(keycode & KEY_RELEASED)) {
+        // Обработка пробела
+        else if (keycode == KEY_SPACE && !(keycode & KEY_RELEASED)) {
             if (buffer_position < sizeof(keyboard_buffer) - 1) {
                 keyboard_buffer[buffer_position++] = ' ';
             }
         }
         // Обработка обычных клавиш
         else if (!(keycode & KEY_RELEASED) && keycode < 128) {
-            if (keycode == 0x0F) { // Скан-код Tab
+            if (keycode == KEY_TAB) {
                 // Вставляем 4 пробела
                 for (int i = 0; i < 4; i++) {
                     if (buffer_position < sizeof(keyboard_buffer) - 1) {

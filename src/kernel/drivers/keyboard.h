@@ -15,8 +15,19 @@
 #define KEY_RELEASED 0x80
 
 /* Скан-коды клавиш-модификаторов */
-#define KEY_SHIFT    0x2A    /* Левый Shift */
-#define KEY_CAPSLOCK 0x3A    /* Caps Lock */
+#define KEY_SHIFT_LEFT    0x2A    /* Левый Shift */
+#define KEY_SHIFT_RIGHT   0x36    /* Правый Shift */
+#define KEY_CAPSLOCK      0x3A    /* Caps Lock */
+#define KEY_SPACE         0x39    /* Пробел */
+#define KEY_TAB           0x0F    /* Tab */
+
+/* Команды клавиатуры */
+#define KEYBOARD_CMD_SET_LEDS 0xED
+
+/* Маски светодиодов */
+#define LED_CAPS_LOCK   0x04
+#define LED_NUM_LOCK    0x02
+#define LED_SCROLL_LOCK 0x01
 
 /**
  * Инициализация клавиатуры
@@ -41,7 +52,6 @@ char keyboard_read(void);
  * @param buffer Буфер для сохранения строки
  * @param max_length Максимальная длина строки (включая нулевой символ)
  */
-// Изменяем возвращаемый тип и параметры
-char* read_line(unsigned int max_length);  // Теперь возвращает указатель на строку
+char* read_line(unsigned int max_length);
 
 #endif /* KERNEL_KEYBOARD_H */
