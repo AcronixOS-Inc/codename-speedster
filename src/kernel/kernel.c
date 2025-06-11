@@ -46,7 +46,8 @@ void kmain(void)
          * - Буферизация будет осуществляться в пространстве пользователя
          * - Доступ к терминалу будет через стандартные дескрипторы (stdin/stdout)
          */
-        char* user_input = read_line(128);
+        char input_buffer[128];
+        char* user_input = read_line(input_buffer, sizeof(input_buffer));
         
         /* Здесь должен быть обработчик команд (временный) */
         /* В финальной версии будет переключение контекста */

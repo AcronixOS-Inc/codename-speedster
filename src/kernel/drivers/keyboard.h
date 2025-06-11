@@ -20,6 +20,19 @@
 #define KEY_CAPSLOCK      0x3A    /* Caps Lock */
 #define KEY_SPACE         0x39    /* Пробел */
 #define KEY_TAB           0x0F    /* Tab */
+#define KEY_BACKSPACE     0x0E    /* Backspace */
+
+/* Extended скан-коды (с префиксом 0xE0) */
+#define KEY_UP_ARROW      0x48    /* Стрелка вверх */
+#define KEY_DOWN_ARROW    0x50    /* Стрелка вниз */
+#define KEY_LEFT_ARROW    0x4B    /* Стрелка влево */
+#define KEY_RIGHT_ARROW   0x4D    /* Стрелка вправо */
+
+/* Специальные коды для extended клавиш */
+#define KEY_SPECIAL_UP    0x80    /* Специальный код для стрелки вверх */
+#define KEY_SPECIAL_DOWN  0x81    /* Специальный код для стрелки вниз */
+#define KEY_SPECIAL_LEFT  0x82    /* Специальный код для стрелки влево */
+#define KEY_SPECIAL_RIGHT 0x83    /* Специальный код для стрелки вправо */
 
 /* Команды клавиатуры */
 #define KEYBOARD_CMD_SET_LEDS 0xED
@@ -52,6 +65,6 @@ char keyboard_read(void);
  * @param buffer Буфер для сохранения строки
  * @param max_length Максимальная длина строки (включая нулевой символ)
  */
-char* read_line(unsigned int max_length);
+char* read_line(char* buffer, unsigned int max_length);
 
 #endif /* KERNEL_KEYBOARD_H */

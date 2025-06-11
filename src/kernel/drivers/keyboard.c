@@ -12,6 +12,7 @@
 #include "keyboard.h"
 #include "../video/video.h"
 #include "../idt/idt.h"
+#include <stddef.h>
 
 /* Порт данных клавиатуры */
 #define KEYBOARD_DATA_PORT 0x60
@@ -165,11 +166,15 @@ char keyboard_read(void) {
 
 /**
  * Чтение строки с клавиатуры до нажатия Enter
- * @param buffer Буфер для сохранения строки
+ * @param buffer Буфер для сохранения строки (должен быть выделен вызывающей стороной)
  * @param max_length Максимальная длина строки (включая нулевой символ)
+ * @return Указатель на буфер или NULL при ошибке
  */
-char* read_line(unsigned int max_length) {
-    static char buffer[256];  // Статический буфер для хранения ввода
+char* read_line(char* buffer, unsigned int max_length) {
+    if (!buffer || max_length < 1) {
+        return NULL;
+    }
+
     unsigned int pos = 0;
 
     enable_cursor(0, 15);
@@ -179,14 +184,10 @@ char* read_line(unsigned int max_length) {
         char input = keyboard_read();
         if (input != 0) {
             if (input == '\n') {
-                if (pos < max_length - 1) {
-                    buffer[pos] = '\0';
-                } else {
-                    buffer[max_length - 1] = '\0';
-                }
+                buffer[pos] = '\0';
                 print_string("\n");
                 disable_cursor();
-                return buffer;  // Возвращаем указатель на буфер
+                return buffer;
             } 
             else if (input == '\b') {
                 if (pos > 0) {
