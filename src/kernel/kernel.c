@@ -4,6 +4,7 @@
  */
 
 #include "video/video.h"
+#include "video/video_buffer.h"
 #include "idt/idt.h"
 #include "drivers/keyboard.h"
 
@@ -13,6 +14,7 @@
 void kmain(void) 
 {
     /* Инициализация видео-подсистемы */
+    video_buffer_init();
     clear_screen();
 
     idt_init();         // Настройка таблицы прерываний

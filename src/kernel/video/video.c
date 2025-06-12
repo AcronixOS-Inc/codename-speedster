@@ -3,11 +3,12 @@
  * @brief Реализация функций для работы с видеопамятью в текстовом режиме VGA
  * 
  * Этот модуль предоставляет базовые функции для вывода текста на экран
- * в текстовом режиме 80x25 символов. Работает напрямую с видеопамятью
- * по адресу 0xB8000.
+ * в текстовом режиме 80x25 символов. Использует буферизацию для оптимизации
+ * доступа к видеопамяти.
  */
 
 #include "video.h"
+#include "video_buffer.h"
 #include "../idt/idt.h"
 #include <stdint.h>
 
@@ -34,7 +35,8 @@ char* VIDEO_MEMORY = (char*)0xB8000;
  * Обновляется после каждого вывода символа.
  */
 unsigned int cursor_pos = 0;
- /**
+
+/**
  * @brief Безопасное обновление позиции курсора с проверкой границ
  * @param new_pos Новая позиция курсора
  */
@@ -42,7 +44,7 @@ static void safe_update_cursor_pos(int new_pos) {
     if (new_pos < 0) new_pos = 0;
     if (new_pos >= SCREEN_SIZE) new_pos = SCREEN_SIZE - 2;
     cursor_pos = new_pos;
-    update_cursor(cursor_pos / 2);
+    video_buffer_update_cursor(cursor_pos / 2);
 }
 
 /**
@@ -94,7 +96,6 @@ void update_cursor(int pos) {
     write_port(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
 }
 
-
 /**
  * @brief Очищает экран, заполняя его пробелами
  * 
@@ -108,14 +109,9 @@ void update_cursor(int pos) {
  *       - Биты 4-6: цвет фона (0 - черный)
  *       - Бит 7: мигание (0 - выключено)
  */
-void clear_screen(void) 
-{
-    for (unsigned i = 0; i < SCREEN_SIZE; i += 2) {
-        VIDEO_MEMORY[i] = ' ';
-        VIDEO_MEMORY[i+1] = 0x07;
-    }
-    disable_cursor();
-    cursor_pos = 0; // Сбрасываем позицию курсора
+void clear_screen(void) {
+    video_buffer_clear();
+    video_buffer_flush();
 }
 
 /**
@@ -130,36 +126,8 @@ void clear_screen(void)
  * @note При достижении конца экрана выполняется сброс позиции в начало
  */
 void print_string(const char* str) {
-    while (*str && cursor_pos < SCREEN_SIZE) {
-        if (*str == '\n') {
-            cursor_pos = ((cursor_pos / 160) + 1) * 160;
-            if (cursor_pos >= SCREEN_SIZE) {
-                cursor_pos = SCREEN_SIZE - 160;
-            }
-            str++;
-            continue;
-        }
-        else if (*str == '\b') {
-            if (cursor_pos >= 2) {
-                cursor_pos -= 2;
-                VIDEO_MEMORY[cursor_pos] = ' ';
-                VIDEO_MEMORY[cursor_pos + 1] = 0x07;
-            }
-            str++;
-            continue;
-        }
-        
-        VIDEO_MEMORY[cursor_pos] = *str++;
-        VIDEO_MEMORY[cursor_pos + 1] = 0x07;
-        cursor_pos += 2;
-        
-        if (cursor_pos >= SCREEN_SIZE) {
-            // Реализуйте скроллинг экрана здесь при необходимости
-            cursor_pos = SCREEN_SIZE - 2;
-        }
-
-        safe_update_cursor_pos(cursor_pos);
-    }
+    video_buffer_write_string(str, COLOR_LIGHT_GRAY, COLOR_BLACK);
+    video_buffer_flush();
 }
 
 /**
@@ -174,27 +142,29 @@ void print_string(const char* str) {
  * @note Цвета комбинируются в атрибут символа по формуле: (bg_color << 4) | fg_color
  * @note Поддерживает перенос строки ('\n') и автоматический сброс позиции при переполнении
  */
-void print_string_color(const char* str, unsigned char fg_color, unsigned char bg_color) 
-{
-    unsigned char attribute = (bg_color << 4) | (fg_color & 0x0F);
-    
-    while (*str && cursor_pos < SCREEN_SIZE) {
-        if (*str == '\n') {
-            cursor_pos = ((cursor_pos / 160) + 1) * 160;
-            if (cursor_pos >= SCREEN_SIZE) {
-                cursor_pos = SCREEN_SIZE - 160;
-            }
-            str++;
-            continue;
-        }
-        
-        VIDEO_MEMORY[cursor_pos] = *str++;
-        VIDEO_MEMORY[cursor_pos + 1] = attribute;
-        cursor_pos += 2;
-        
-        if (cursor_pos >= SCREEN_SIZE) {
-            cursor_pos = SCREEN_SIZE - 2;
-        }
-    }
-    safe_update_cursor_pos(cursor_pos);
+void print_string_color(const char* str, unsigned char fg_color, unsigned char bg_color) {
+    video_buffer_write_string(str, fg_color, bg_color);
+    video_buffer_flush();
+}
+
+/**
+ * @brief Выводит символ на экран
+ * 
+ * @param c Символ для вывода
+ */
+void print_char(char c) {
+    video_buffer_put_char(c, COLOR_LIGHT_GRAY, COLOR_BLACK);
+    video_buffer_flush();
+}
+
+/**
+ * @brief Выводит символ на экран с указанными цветами
+ * 
+ * @param c Символ для вывода
+ * @param color Цвет текста
+ * @param bg_color Цвет фона
+ */
+void print_char_color(char c, uint8_t color, uint8_t bg_color) {
+    video_buffer_put_char(c, color, bg_color);
+    video_buffer_flush();
 }

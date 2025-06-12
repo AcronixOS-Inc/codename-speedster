@@ -15,6 +15,7 @@ GDB := gdb
 # Директории
 SRCDIR := src
 BUILDDIR := build
+KERNEL_DIR := $(BUILDDIR)/kernel
 
 # Поиск исходников
 ASM_SOURCES := $(shell find $(SRCDIR) -type f -name "*.asm")
@@ -29,7 +30,7 @@ OBJECTS := $(ASM_OBJECTS) $(C_OBJECTS)
 .PHONY: all clean run debug build_dir help
 
 # Сборка ядра
-all: kernel
+all: $(BUILDDIR) $(KERNEL_DIR) $(OBJECTS) kernel
 	@echo -e "\n✅ \033[1;32mГотово! Используйте:\033[0m"
 	@echo -e "  🚀 \033[1;36mmake run\033[0m   — запустить в QEMU"
 	@echo -e "  🐞 \033[1;35mmake debug\033[0m — отладка в GDB"
@@ -49,6 +50,7 @@ debug: kernel
 # Создание build/
 build_dir:
 	@mkdir -p $(BUILDDIR)
+	@mkdir -p $(KERNEL_DIR)
 	@mkdir -p $(dir $(ASM_OBJECTS)) $(dir $(C_OBJECTS))
 
 # Линковка
