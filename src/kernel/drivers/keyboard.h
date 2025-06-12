@@ -67,4 +67,16 @@ char keyboard_read(void);
  */
 char* read_line(char* buffer, unsigned int max_length);
 
+/**
+ * Проверяет, не обрабатывается ли уже прерывание клавиатуры
+ * @return 1 если обработчик занят, 0 если свободен
+ */
+int keyboard_handler_is_busy(void);
+
+/**
+ * Устанавливает флаг занятости обработчика клавиатуры
+ * @param busy 1 для установки флага занятости, 0 для сброса
+ */
+void keyboard_handler_set_busy(int busy);
+
 #endif /* KERNEL_KEYBOARD_H */

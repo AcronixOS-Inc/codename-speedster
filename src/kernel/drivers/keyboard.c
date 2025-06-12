@@ -27,6 +27,24 @@ static unsigned int buffer_position = 0;
 static int shift_pressed = 0;
 /* Флаг состояния Caps Lock */
 static int caps_lock = 0;
+/* Флаг занятости обработчика */
+static volatile int handler_busy = 0;
+
+/**
+ * Проверяет, не обрабатывается ли уже прерывание клавиатуры
+ * @return 1 если обработчик занят, 0 если свободен
+ */
+int keyboard_handler_is_busy(void) {
+    return handler_busy;
+}
+
+/**
+ * Устанавливает флаг занятости обработчика клавиатуры
+ * @param busy 1 для установки флага занятости, 0 для сброса
+ */
+void keyboard_handler_set_busy(int busy) {
+    handler_busy = busy;
+}
 
 /**
  * Основная карта символов (без модификаторов)
@@ -100,6 +118,16 @@ void keyboard_init(void) {
  * (Shift, Caps Lock) и помещает символ в буфер
  */
 void keyboard_handler_main(void) {
+    /* Проверяем, не обрабатывается ли уже прерывание */
+    if (keyboard_handler_is_busy()) {
+        /* Если обработчик занят, просто отправляем EOI и выходим */
+        write_port(0x20, 0x20);
+        return;
+    }
+
+    /* Устанавливаем флаг занятости */
+    keyboard_handler_set_busy(1);
+
     unsigned char status = read_port(KEYBOARD_STATUS_PORT);
     
     if (status & 0x01) {
@@ -143,6 +171,10 @@ void keyboard_handler_main(void) {
         }
     }
     
+    /* Сбрасываем флаг занятости */
+    keyboard_handler_set_busy(0);
+    
+    /* Отправляем EOI */
     write_port(0x20, 0x20);
 }
 
