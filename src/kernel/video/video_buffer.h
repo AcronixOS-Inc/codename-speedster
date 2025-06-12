@@ -14,6 +14,12 @@
 /* Размер буфера (80x25 символов * 2 байта) */
 #define BUFFER_SIZE (80 * 25 * 2)
 
+/* Размер одной строки в байтах */
+#define LINE_SIZE (80 * 2)
+
+/* Количество строк на экране */
+#define SCREEN_LINES 25
+
 /**
  * @brief Инициализирует видеобуфер
  */
@@ -50,5 +56,12 @@ void video_buffer_clear(void);
  * @param pos Новая позиция курсора
  */
 void video_buffer_update_cursor(int pos);
+
+/**
+ * @brief Прокручивает экран на одну строку вверх
+ * @param color Цвет для заполнения новой строки
+ * @param bg_color Цвет фона для заполнения новой строки
+ */
+void video_buffer_scroll(uint8_t color, uint8_t bg_color);
 
 #endif /* KERNEL_VIDEO_BUFFER_H */ 

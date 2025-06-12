@@ -37,6 +37,26 @@ void video_buffer_flush(void) {
 }
 
 /**
+ * @brief Прокручивает экран на одну строку вверх
+ * @param color Цвет для заполнения новой строки
+ * @param bg_color Цвет фона для заполнения новой строки
+ */
+void video_buffer_scroll(uint8_t color, uint8_t bg_color) {
+    /* Сдвигаем все строки вверх на одну позицию */
+    memcpy(video_buffer, video_buffer + LINE_SIZE, BUFFER_SIZE - LINE_SIZE);
+    
+    /* Очищаем последнюю строку */
+    for (int i = 0; i < LINE_SIZE; i += 2) {
+        video_buffer[BUFFER_SIZE - LINE_SIZE + i] = ' ';
+        video_buffer[BUFFER_SIZE - LINE_SIZE + i + 1] = (color & 0x0F) | ((bg_color & 0x0F) << 4);
+    }
+    
+    /* Обновляем позицию курсора */
+    cursor_pos = BUFFER_SIZE - LINE_SIZE;
+    buffer_dirty = 1;
+}
+
+/**
  * @brief Записывает символ в буфер
  * @param c Символ для записи
  * @param color Цвет символа
@@ -45,9 +65,11 @@ void video_buffer_flush(void) {
 void video_buffer_put_char(char c, uint8_t color, uint8_t bg_color) {
     if (c == '\n') {
         /* Переход на новую строку */
-        cursor_pos = ((cursor_pos / 160) + 1) * 160;
+        cursor_pos = ((cursor_pos / LINE_SIZE) + 1) * LINE_SIZE;
+        
+        /* Если достигли конца экрана, прокручиваем */
         if (cursor_pos >= BUFFER_SIZE) {
-            cursor_pos = BUFFER_SIZE - 160;
+            video_buffer_scroll(color, bg_color);
         }
     }
     else if (c == '\b') {
@@ -58,8 +80,12 @@ void video_buffer_put_char(char c, uint8_t color, uint8_t bg_color) {
             video_buffer[cursor_pos + 1] = (color & 0x0F) | ((bg_color & 0x0F) << 4);
         }
     }
-    else if (cursor_pos < BUFFER_SIZE - 1) {
+    else {
         /* Записываем обычный символ */
+        if (cursor_pos >= BUFFER_SIZE - 1) {
+            video_buffer_scroll(color, bg_color);
+        }
+        
         video_buffer[cursor_pos] = c;
         video_buffer[cursor_pos + 1] = (color & 0x0F) | ((bg_color & 0x0F) << 4);
         cursor_pos += 2;
@@ -76,35 +102,8 @@ void video_buffer_put_char(char c, uint8_t color, uint8_t bg_color) {
  */
 void video_buffer_write_string(const char* str, uint8_t color, uint8_t bg_color) {
     while (*str) {
-        if (*str == '\n') {
-            /* Переход на новую строку */
-            cursor_pos = ((cursor_pos / 160) + 1) * 160;
-            if (cursor_pos >= BUFFER_SIZE) {
-                cursor_pos = BUFFER_SIZE - 160;
-            }
-            str++;
-            continue;
-        }
-        else if (*str == '\b') {
-            /* Обработка backspace */
-            if (cursor_pos >= 2) {
-                cursor_pos -= 2;
-                video_buffer[cursor_pos] = ' ';
-                video_buffer[cursor_pos + 1] = (color & 0x0F) | ((bg_color & 0x0F) << 4);
-            }
-            str++;
-            continue;
-        }
-        
-        /* Записываем обычный символ */
-        if (cursor_pos < BUFFER_SIZE - 1) {
-            video_buffer[cursor_pos] = *str;
-            video_buffer[cursor_pos + 1] = (color & 0x0F) | ((bg_color & 0x0F) << 4);
-            cursor_pos += 2;
-        }
-        str++;
+        video_buffer_put_char(*str++, color, bg_color);
     }
-    buffer_dirty = 1;
 }
 
 /**
