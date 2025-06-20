@@ -72,6 +72,19 @@ void print_string(const char* str);
 void print_string_color(const char* str, unsigned char fg_color, unsigned char bg_color);
 
 /**
+ * @brief Устанавливает текущий цвет для выводимого текста.
+ * @param fg_color Цвет текста
+ * @param bg_color Цвет фона
+ */
+void set_color(unsigned char fg_color, unsigned char bg_color);
+
+/**
+ * @brief Выводит на экран десятичное число.
+ * @param n Число для вывода
+ */
+void print_dec(int n);
+
+/**
  * @brief Включает отображение курсора на экране
  * 
  * Функция включает VGA-курсор и задаёт его форму, указывая начальную и конечную

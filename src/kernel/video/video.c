@@ -198,3 +198,60 @@ void print_string_color(const char* str, unsigned char fg_color, unsigned char b
     }
     safe_update_cursor_pos(cursor_pos);
 }
+
+// Статические переменные для хранения текущего цвета
+static unsigned char current_fg_color = COLOR_WHITE;
+static unsigned char current_bg_color = COLOR_BLACK;
+
+/**
+ * @brief Устанавливает текущий цвет для выводимого текста.
+ * @param fg_color Цвет текста
+ * @param bg_color Цвет фона
+ */
+void set_color(unsigned char fg_color, unsigned char bg_color) {
+    current_fg_color = fg_color;
+    current_bg_color = bg_color;
+}
+
+/**
+ * @brief Выводит на экран десятичное число.
+ * @param n Число для вывода
+ */
+void print_dec(int n) {
+    if (n == 0) {
+        char str[2] = {'0', '\0'};
+        print_string_color(str, current_fg_color, current_bg_color);
+        return;
+    }
+
+    char buffer[50];
+    int i = 0;
+    unsigned int num;
+    int is_negative = 0;
+
+    if (n < 0) {
+        is_negative = 1;
+        num = -n;
+    } else {
+        num = n;
+    }
+
+    while (num != 0) {
+        buffer[i++] = (num % 10) + '0';
+        num = num / 10;
+    }
+
+    if (is_negative) {
+        buffer[i++] = '-';
+    }
+    
+    // Переворачиваем строку
+    for (int j = 0; j < i / 2; j++) {
+        char temp = buffer[j];
+        buffer[j] = buffer[i - j - 1];
+        buffer[i - j - 1] = temp;
+    }
+    buffer[i] = '\0';
+
+    print_string_color(buffer, current_fg_color, current_bg_color);
+}

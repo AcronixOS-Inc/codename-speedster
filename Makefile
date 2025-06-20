@@ -17,13 +17,17 @@ SRCDIR := src
 BUILDDIR := build
 
 # Поиск исходников
-ASM_SOURCES := $(shell find $(SRCDIR) -type f -name "*.asm")
-C_SOURCES := $(shell find $(SRCDIR) -type f -name "*.c")
+ASM_SOURCES = $(wildcard src/boot/*.asm) \
+              $(wildcard src/kernel/idt/*.asm)
+C_SOURCES = $(wildcard src/kernel/*.c) \
+            $(wildcard src/kernel/video/*.c) \
+            $(wildcard src/kernel/idt/*.c) \
+            $(wildcard src/kernel/drivers/*.c)
 
 # Объектные файлы (в build/)
-ASM_OBJECTS := $(patsubst $(SRCDIR)/%, $(BUILDDIR)/%, $(ASM_SOURCES:.asm=.o))
-C_OBJECTS := $(patsubst $(SRCDIR)/%, $(BUILDDIR)/%, $(C_SOURCES:.c=.o))
-OBJECTS := $(ASM_OBJECTS) $(C_OBJECTS)
+ASM_OBJECTS = $(patsubst src/%.asm, build/%.o, $(ASM_SOURCES))
+C_OBJECTS = $(patsubst src/%.c, build/%.o, $(C_SOURCES))
+OBJECTS = $(ASM_OBJECTS) $(C_OBJECTS)
 
 # Основные цели
 .PHONY: all clean run debug build_dir help
@@ -54,7 +58,7 @@ build_dir:
 # Линковка
 kernel: $(OBJECTS)
 	@echo -e "\n🔗 \033[1;34mЛинковка...\033[0m"
-	@$(LD) $(LDFLAGS) $(OBJECTS)
+	@$(LD) $(LDFLAGS) -o $@ $(OBJECTS)
 
 # Правила компиляции
 $(BUILDDIR)/%.o: $(SRCDIR)/%.asm | build_dir
