@@ -85,6 +85,12 @@ void set_color(unsigned char fg_color, unsigned char bg_color);
 void print_dec(int n);
 
 /**
+ * @brief Выводит на экран шестнадцатеричное число.
+ * @param n Число для вывода
+ */
+void print_hex(uint32_t n);
+
+/**
  * @brief Включает отображение курсора на экране
  * 
  * Функция включает VGA-курсор и задаёт его форму, указывая начальную и конечную

@@ -22,7 +22,8 @@ ASM_SOURCES = $(wildcard src/boot/*.asm) \
 C_SOURCES = $(wildcard src/kernel/*.c) \
             $(wildcard src/kernel/video/*.c) \
             $(wildcard src/kernel/idt/*.c) \
-            $(wildcard src/kernel/drivers/*.c)
+            $(wildcard src/kernel/drivers/*.c) \
+            $(wildcard src/kernel/memory/*.c)
 
 # Объектные файлы (в build/)
 ASM_OBJECTS = $(patsubst src/%.asm, build/%.o, $(ASM_SOURCES))

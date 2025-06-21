@@ -255,3 +255,40 @@ void print_dec(int n) {
 
     print_string_color(buffer, current_fg_color, current_bg_color);
 }
+
+/**
+ * @brief Выводит на экран шестнадцатеричное число.
+ * @param n Число для вывода
+ */
+void print_hex(uint32_t n) {
+    if (n == 0) {
+        char str[3] = {'0', 'x', '0'};
+        print_string_color(str, current_fg_color, current_bg_color);
+        return;
+    }
+
+    char buffer[12]; // "0x" + 8 hex digits + '\0'
+    int i = 0;
+    
+    // Добавляем префикс "0x"
+    buffer[i++] = '0';
+    buffer[i++] = 'x';
+    
+    // Находим позицию первой ненулевой цифры
+    int first_digit = 0;
+    for (int shift = 28; shift >= 0; shift -= 4) {
+        uint8_t digit = (n >> shift) & 0xF;
+        if (digit != 0 || first_digit) {
+            first_digit = 1;
+            buffer[i++] = (digit < 10) ? (digit + '0') : (digit - 10 + 'a');
+        }
+    }
+    
+    // Если все цифры были нулевыми, выводим хотя бы одну
+    if (i == 2) {
+        buffer[i++] = '0';
+    }
+    
+    buffer[i] = '\0';
+    print_string_color(buffer, current_fg_color, current_bg_color);
+}

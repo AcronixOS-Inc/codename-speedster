@@ -12,6 +12,7 @@
 #include "keyboard.h"
 #include "../video/video.h"
 #include "../idt/idt.h"
+#include "../memory/memory.h"
 
 /* Порт данных клавиатуры */
 #define KEYBOARD_DATA_PORT 0x60
@@ -165,11 +166,17 @@ char keyboard_read(void) {
 
 /**
  * Чтение строки с клавиатуры до нажатия Enter
- * @param buffer Буфер для сохранения строки
  * @param max_length Максимальная длина строки (включая нулевой символ)
+ * @return Указатель на выделенную память с введенной строкой или NULL при ошибке
+ * @note Вызывающий код должен освободить память с помощью kfree()
  */
 char* read_line(unsigned int max_length) {
-    static char buffer[256];  // Статический буфер для хранения ввода
+    /* Выделяем динамический буфер */
+    char* buffer = (char*)kmalloc(max_length);
+    if (!buffer) {
+        return NULL; /* Не удалось выделить память */
+    }
+    
     unsigned int pos = 0;
 
     enable_cursor(0, 15);
@@ -186,7 +193,7 @@ char* read_line(unsigned int max_length) {
                 }
                 print_string("\n");
                 disable_cursor();
-                return buffer;  // Возвращаем указатель на буфер
+                return buffer;  /* Возвращаем указатель на динамический буфер */
             } 
             else if (input == '\b') {
                 if (pos > 0) {
