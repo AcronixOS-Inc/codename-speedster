@@ -45,6 +45,9 @@ extern void isr29();
 extern void isr30();
 extern void isr31();
 
+/* Объявление обработчика прерывания PIT */
+extern void pit_handler_asm();
+
 /* Глобальная таблица IDT */
 struct IDT_entry IDT[IDT_SIZE];
 
@@ -104,6 +107,9 @@ void idt_init(void)
 
     /* 1. Настройка обработчика клавиатуры (IRQ1 -> INT 0x21) */
     idt_set_gate(0x21, (unsigned long)keyboard_handler);
+
+    /* Настройка обработчика системного таймера (IRQ0 -> INT 0x20) */
+    idt_set_gate(0x20, (unsigned long)pit_handler_asm);
 
     /* 2. Перенастройка PIC (Programmable Interrupt Controller) */
     

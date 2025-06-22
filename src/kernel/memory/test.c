@@ -125,10 +125,10 @@ void test_heap(void) {
  * @brief Запуск всех тестов менеджера памяти
  */
 void run_memory_tests(void) {
-    print_string("\n🚀 Starting Memory Manager Tests...\n");
+    print_string("\nStarting Memory Manager Tests...\n");
     
     test_pmm();
     test_heap();
     
-    print_string("\n✅ Memory Manager Tests Completed!\n");
+    print_string("\nMemory Manager Tests Completed!\n");
 } 

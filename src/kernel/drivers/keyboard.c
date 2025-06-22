@@ -217,6 +217,10 @@ char* read_line(unsigned int max_length) {
                 }
                 update_cursor(cursor_pos / 2);
             }
+        } else {
+            /* Если нет ввода, используем hlt для экономии энергии */
+            /* Процессор будет пробужден прерыванием от клавиатуры */
+            __asm__ volatile("hlt");
         }
     }
 }

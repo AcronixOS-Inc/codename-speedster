@@ -251,7 +251,7 @@ void* krealloc(void* ptr, size_t new_size) {
 }
 
 /**
- * @brief Вывод информации о состоянии кучи
+ * @brief Вывод информации о состоянии кучи окак
  */
 void heap_dump_info(void) {
     print_string("Kernel Heap Info:\n");

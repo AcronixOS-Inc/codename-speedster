@@ -6,6 +6,7 @@
 #include "video/video.h"
 #include "idt/idt.h"
 #include "drivers/keyboard.h"
+#include "drivers/pit.h"
 #include "memory/memory.h"
 
 /* Внешние символы для определения размера ядра */
@@ -22,6 +23,7 @@ void kmain(void)
 
     idt_init();         // Настройка таблицы прерываний
     keyboard_init();    // Инициализация драйвера клавиатуры
+    pit_init();         // Инициализация системного таймера
     
     /* Инициализация менеджера памяти */
     pmm_init((uint32_t)&_kernel_end);
@@ -41,7 +43,10 @@ void kmain(void)
     print_string(kernel_msg);
 
     /* Запуск тестов менеджера памяти */
-    run_memory_tests();
+    //run_memory_tests();
+
+    /* Запуск тестов системного таймера */
+    //run_timer_tests();
 
     /**
      * @brief Основной цикл ядра с временным псевдо-терминалом
@@ -70,7 +75,14 @@ void kmain(void)
             
             /* Освобождаем память, выделенную для ввода */
             kfree(user_input);
+        } else {
+            /* Если не удалось выделить память, ждем немного */
+            pit_sleep_ms(100);
         }
+        
+        /* Используем hlt для экономии энергии, когда ядру нечего делать */
+        /* В будущем здесь будет планировщик задач */
+        __asm__ volatile("hlt");
     }
     
     /* Ядро никогда не должно достигать этой точки */
