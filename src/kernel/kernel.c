@@ -41,7 +41,7 @@ void kmain(void)
     print_string(kernel_msg);
 
     /* Запуск тестов менеджера памяти */
-    //run_memory_tests();
+    run_memory_tests();
 
     /**
      * @brief Основной цикл ядра с временным псевдо-терминалом
