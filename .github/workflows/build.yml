@@ -2,9 +2,9 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "unstable" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "unstable" ]
 
 jobs:
   build:
@@ -76,3 +76,22 @@ jobs:
             echo "::warning::Incorrect file permissions found"
             echo "Found permission issues but continuing..."
           fi
+
+  clang-analyzer:
+    name: Clang Static Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y clang-tools gcc-multilib make nasm
+      - name: Run Clang Static Analyzer
+        run: |
+          scan-build make all || true
+
+  coverity-reminder:
+    name: Coverity Scan Reminder
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reminder
+        run: echo "Coverity Scan должен запускаться вручную или через отдельный workflow с токеном. Подробнее: https://scan.coverity.com/"
