@@ -94,4 +94,3 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Reminder
-        run: echo "Coverity Scan должен запускаться вручную или через отдельный workflow с токеном. Подробнее: https://scan.coverity.com/"
